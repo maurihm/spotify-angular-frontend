@@ -153,3 +153,6 @@ pre {
 @media (max-width: 760px) {
   .row, .layout, .grid { grid-template-columns: 1fr; }
 }
+
+.train { display: flex; align-items: center; gap: 12px; }
+.train .muted, .train .error { margin: 0; }

@@ -163,30 +163,61 @@ export class App implements OnInit {
     '100': '100% (i-love-adsoftsito-100)'
   };
 
-  // URL del servicio desplegado para cada modelo (una imagen Docker/servicio de Render por tag)
-  modelUrls: Record<string, string> = {
-    '25': 'http://127.0.0.1:8000',
-    '50': 'http://127.0.0.1:8000',
-    '100': 'http://127.0.0.1:8000'
-  };
+  trainStatus: 'idle' | 'running' | 'done' | 'error' = 'idle';
+  trainMessage = '';
+  private pollTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    const saved = localStorage.getItem('spotify_model_urls');
-    if (saved) {
-      this.modelUrls = { ...this.modelUrls, ...JSON.parse(saved) };
+    const savedUrl = localStorage.getItem('spotify_api_url');
+    if (savedUrl) {
+      this.apiUrl = savedUrl;
     }
-    this.apiUrl = this.modelUrls[this.modelSize];
-  }
-
-  onModelChange(): void {
-    this.apiUrl = this.modelUrls[this.modelSize];
   }
 
   onApiUrlChange(): void {
-    this.modelUrls[this.modelSize] = this.apiUrl.trim();
-    localStorage.setItem('spotify_model_urls', JSON.stringify(this.modelUrls));
+    localStorage.setItem('spotify_api_url', this.apiUrl.trim());
+  }
+
+  private get baseUrl(): string {
+    return (this.apiUrl || 'http://127.0.0.1:8000').trim().replace(/\/+$/, '');
+  }
+
+  retrain(): void {
+    this.onApiUrlChange();
+    this.trainStatus = 'running';
+    this.trainMessage = `Entrenando con el dataset ${this.modelSize}%...`;
+    this.http.post<any>(`${this.baseUrl}/train`, null, { params: { dataset: this.modelSize } }).subscribe({
+      next: () => this.pollTrain(),
+      error: (err) => {
+        this.trainStatus = 'error';
+        this.trainMessage = err?.error?.detail || 'No se pudo iniciar el reentrenamiento.';
+      }
+    });
+  }
+
+  private pollTrain(): void {
+    if (this.pollTimer) clearInterval(this.pollTimer);
+    this.pollTimer = setInterval(() => {
+      this.http.get<any>(`${this.baseUrl}/train/status`).subscribe({
+        next: (st) => {
+          if (st.status === 'running') return;
+          clearInterval(this.pollTimer!);
+          this.pollTimer = null;
+          this.trainStatus = st.status;
+          this.trainMessage = st.status === 'done'
+            ? `${st.message} Filas: ${st.rows}, MAE: ${st.mae}`
+            : st.message;
+        },
+        error: () => {
+          clearInterval(this.pollTimer!);
+          this.pollTimer = null;
+          this.trainStatus = 'error';
+          this.trainMessage = 'Se perdió la conexión con el backend.';
+        }
+      });
+    }, 2000);
   }
 
   loadPreset(key: string): void {
