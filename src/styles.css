@@ -1,0 +1,26 @@
+:root {
+  --spotify-green: #1DB954;
+  --spotify-green-hover: #1ed760;
+  --spotify-black: #121212;
+  --spotify-card: #181818;
+  --spotify-card-elevated: #242424;
+  --spotify-border: #2e2e2e;
+  --text-primary: #FFFFFF;
+  --text-secondary: #B3B3B3;
+  --text-muted: #727272;
+  --accent-glow: rgba(29, 185, 84, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--spotify-black);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}

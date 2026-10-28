@@ -1,0 +1,277 @@
+<div class="bg-gradient"></div>
+
+<header>
+  <div class="brand">
+    <div class="logo-badge">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424c-.18.295-.563.387-.857.208-2.35-1.436-5.308-1.76-8.792-.963-.334.077-.665-.133-.742-.467-.077-.335.133-.666.468-.743 3.808-.871 7.08-.507 9.715 1.107.294.18.387.563.208.858zm1.224-2.724c-.226.368-.71.485-1.078.26-2.69-1.653-6.79-2.133-9.972-1.168-.413.125-.852-.109-.977-.522-.125-.413.109-.852.522-.977 3.633-1.102 8.147-.568 11.246 1.33.368.225.485.709.259 1.077zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71c-.494.15-1.018-.13-1.168-.624-.15-.494.13-1.018.624-1.168 3.532-1.072 9.404-.866 13.115 1.338.444.263.59.837.327 1.28-.263.444-.838.59-1.28.327z"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <h1>Spotify Popularity AI — Angular Client</h1>
+      <span>Random Forest Regressor • FastAPI + Docker + Render</span>
+    </div>
+  </div>
+  <div class="header-links">
+    <div class="badge-live">
+      <div class="badge-dot"></div> Angular 20 SPA
+    </div>
+    <a [href]="apiUrl + '/docs'" target="_blank" class="btn-link">Swagger /docs</a>
+  </div>
+</header>
+
+<main>
+  <!-- API Config Bar -->
+  <div class="card api-bar">
+    <div class="api-grid">
+      <div class="control-group">
+        <label class="control-label">🔗 URL del Backend API (Render o Local)</label>
+        <input
+          type="text"
+          [(ngModel)]="apiUrl"
+          (change)="onApiUrlChange()"
+          placeholder="https://tu-servicio-spotify.onrender.com"
+        />
+      </div>
+      <div class="control-group">
+        <label class="control-label">🏷️ Versión del Dataset desplegada (Referencia)</label>
+        <select [(ngModel)]="datasetTag">
+          <option value="25% (i-love-adsoftsito-25)">Dataset 25% (sha: i-love-adsoftsito-25 → esperado: 39.75)</option>
+          <option value="50% (i-love-adsoftsito-50)">Dataset 50% (sha: i-love-adsoftsito-50 → esperado: 31.84)</option>
+          <option value="100% (i-love-adsoftsito-100)">Dataset 100% (sha: i-love-adsoftsito-100 → esperado: 36.70)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Presets -->
+  <div class="presets-container">
+    <div class="presets-label">⚡ Cargar Presets de Prueba</div>
+    <div class="presets-grid">
+      <button
+        type="button"
+        class="preset-btn"
+        [class.active]="activePreset === 'default'"
+        (click)="loadPreset('default')"
+      >
+        🎯 Payload Oficial (Evaluación cURL)
+      </button>
+      <button
+        type="button"
+        class="preset-btn"
+        [class.active]="activePreset === 'hit'"
+        (click)="loadPreset('hit')"
+      >
+        🔥 Hit Pop / Urbano
+      </button>
+      <button
+        type="button"
+        class="preset-btn"
+        [class.active]="activePreset === 'ballad'"
+        (click)="loadPreset('ballad')"
+      >
+        ☕ Balada Acústica
+      </button>
+      <button
+        type="button"
+        class="preset-btn"
+        [class.active]="activePreset === 'rock'"
+        (click)="loadPreset('rock')"
+      >
+        🎸 Rock Enérgico
+      </button>
+      <button
+        type="button"
+        class="preset-btn"
+        [class.active]="activePreset === 'electronic'"
+        (click)="loadPreset('electronic')"
+      >
+        ⚡ Club / Electrónica
+      </button>
+    </div>
+  </div>
+
+  <div class="dashboard-layout">
+    <!-- Left Column: 13 Feature Controls -->
+    <div class="card">
+      <div class="card-title">
+        <span>Ajustar Características Musicales</span>
+        <span class="subtitle-tag">13 Features de Entrada</span>
+      </div>
+
+      <div class="section-title">Ritmo y Percepción</div>
+      <div class="inputs-grid">
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Bailabilidad (danceability)</span>
+            <span class="control-value">{{ payload.danceability }}</span>
+          </div>
+          <input type="range" min="0" max="1" step="0.001" [(ngModel)]="payload.danceability" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Energía (energy)</span>
+            <span class="control-value">{{ payload.energy }}</span>
+          </div>
+          <input type="range" min="0" max="1" step="0.001" [(ngModel)]="payload.energy" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Volumen (loudness, dB)</span>
+            <span class="control-value">{{ payload.loudness }} dB</span>
+          </div>
+          <input type="range" min="-40" max="0" step="0.01" [(ngModel)]="payload.loudness" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Positividad (valence)</span>
+            <span class="control-value">{{ payload.valence }}</span>
+          </div>
+          <input type="range" min="0" max="1" step="0.001" [(ngModel)]="payload.valence" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Tempo (BPM)</span>
+            <span class="control-value">{{ payload.tempo }} BPM</span>
+          </div>
+          <input type="range" min="50" max="220" step="0.001" [(ngModel)]="payload.tempo" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Hablado (speechiness)</span>
+            <span class="control-value">{{ payload.speechiness }}</span>
+          </div>
+          <input type="range" min="0" max="1" step="0.001" [(ngModel)]="payload.speechiness" />
+        </div>
+      </div>
+
+      <div class="section-title">Composición Acústica</div>
+      <div class="inputs-grid">
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Acústica (acousticness)</span>
+            <span class="control-value">{{ payload.acousticness }}</span>
+          </div>
+          <input type="range" min="0" max="1" step="0.0001" [(ngModel)]="payload.acousticness" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Instrumental (instrumentalness)</span>
+            <span class="control-value">{{ payload.instrumentalness }}</span>
+          </div>
+          <input type="range" min="0" max="1" step="0.000001" [(ngModel)]="payload.instrumentalness" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">En Vivo (liveness)</span>
+            <span class="control-value">{{ payload.liveness }}</span>
+          </div>
+          <input type="range" min="0" max="1" step="0.001" [(ngModel)]="payload.liveness" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Duración (duration_ms)</span>
+            <span class="control-value">{{ payload.duration_ms }} ms</span>
+          </div>
+          <input type="number" [(ngModel)]="payload.duration_ms" step="1000" min="30000" max="900000" />
+        </div>
+      </div>
+
+      <div class="section-title">Estructura Armónica</div>
+      <div class="inputs-grid">
+        <div class="control-group">
+          <span class="control-label">Tonalidad (key)</span>
+          <select [(ngModel)]="payload.key">
+            <option [ngValue]="0">C (0)</option>
+            <option [ngValue]="1">C# / Db (1)</option>
+            <option [ngValue]="2">D (2)</option>
+            <option [ngValue]="3">D# / Eb (3)</option>
+            <option [ngValue]="4">E (4)</option>
+            <option [ngValue]="5">F (5)</option>
+            <option [ngValue]="6">F# / Gb (6)</option>
+            <option [ngValue]="7">G (7)</option>
+            <option [ngValue]="8">G# / Ab (8)</option>
+            <option [ngValue]="9">A (9)</option>
+            <option [ngValue]="10">A# / Bb (10)</option>
+            <option [ngValue]="11">B (11)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <span class="control-label">Modo Musical (mode)</span>
+          <select [(ngModel)]="payload.mode">
+            <option [ngValue]="0">Menor (0)</option>
+            <option [ngValue]="1">Mayor (1)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <span class="control-label">Compás (time_signature)</span>
+          <select [(ngModel)]="payload.time_signature">
+            <option [ngValue]="3">3/4</option>
+            <option [ngValue]="4">4/4 (Estándar)</option>
+            <option [ngValue]="5">5/4</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Prediction Score, History & Live cURL -->
+    <div class="right-column">
+      <div class="score-card">
+        <div class="score-circle">
+          <div class="score-number">{{ score !== null ? score : '--' }}</div>
+          <div class="score-max">/ 100</div>
+        </div>
+        <div class="score-label">Popularidad Estimada</div>
+        <div class="score-subtitle">{{ scoreSubtitle }}</div>
+
+        <div class="error-box" *ngIf="errorMsg">{{ errorMsg }}</div>
+
+        <button class="btn-predict" (click)="predictPopularity()" [disabled]="loading">
+          <span *ngIf="!loading">🎵 Calcular Popularidad (POST /score)</span>
+          <span *ngIf="loading">⏳ Consultando modelo...</span>
+        </button>
+      </div>
+
+      <!-- Comparison / History Box -->
+      <div class="curl-card" *ngIf="history.length > 0">
+        <div class="curl-header">
+          <div class="curl-title">📊 Historial de Pruebas por Dataset</div>
+        </div>
+        <div class="history-list">
+          <div class="history-item" *ngFor="let item of history">
+            <div>
+              <strong>{{ item.datasetTag }}</strong>
+              <div class="history-meta">{{ item.presetName }} • {{ item.timestamp }}</div>
+            </div>
+            <div class="history-score">{{ item.score }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live cURL Box -->
+      <div class="curl-card">
+        <div class="curl-header">
+          <div class="curl-title">💻 Comando cURL con Mismo Payload</div>
+          <button class="btn-copy" [class.copied]="copied" (click)="copyCurl()">
+            {{ copied ? '¡Copiado!' : 'Copiar cURL' }}
+          </button>
+        </div>
+        <pre class="curl-box">{{ curlCommand }}</pre>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Frontend construido en <strong>Angular 20</strong> para evaluar el modelo <strong>Spotify Random Forest</strong> desplegado en <strong>Render</strong>.
+</footer>
