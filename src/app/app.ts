@@ -37,6 +37,7 @@ export interface PredictionRecord {
 export class App implements OnInit {
   apiUrl = 'http://127.0.0.1:8000';
   datasetTag = '100% (i-love-adsoftsito-100)';
+  modelSize: '25' | '50' | '100' = '100';
   activePreset = 'default';
   loading = false;
   errorMsg = '';
@@ -156,17 +157,36 @@ export class App implements OnInit {
     }
   };
 
+  datasetLabels: Record<string, string> = {
+    '25': '25% (i-love-adsoftsito-25)',
+    '50': '50% (i-love-adsoftsito-50)',
+    '100': '100% (i-love-adsoftsito-100)'
+  };
+
+  // URL del servicio desplegado para cada modelo (una imagen Docker/servicio de Render por tag)
+  modelUrls: Record<string, string> = {
+    '25': 'http://127.0.0.1:8000',
+    '50': 'http://127.0.0.1:8000',
+    '100': 'http://127.0.0.1:8000'
+  };
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    const savedUrl = localStorage.getItem('spotify_api_url');
-    if (savedUrl) {
-      this.apiUrl = savedUrl;
+    const saved = localStorage.getItem('spotify_model_urls');
+    if (saved) {
+      this.modelUrls = { ...this.modelUrls, ...JSON.parse(saved) };
     }
+    this.apiUrl = this.modelUrls[this.modelSize];
+  }
+
+  onModelChange(): void {
+    this.apiUrl = this.modelUrls[this.modelSize];
   }
 
   onApiUrlChange(): void {
-    localStorage.setItem('spotify_api_url', this.apiUrl.trim());
+    this.modelUrls[this.modelSize] = this.apiUrl.trim();
+    localStorage.setItem('spotify_model_urls', JSON.stringify(this.modelUrls));
   }
 
   loadPreset(key: string): void {
@@ -213,6 +233,7 @@ export class App implements OnInit {
       time_signature: Number(this.payload.time_signature)
     };
 
+    this.datasetTag = this.datasetLabels[this.modelSize];
     this.http.post<{ score: number }>(this.normalizedEndpoint, cleanPayload).subscribe({
       next: (res) => {
         this.loading = false;
