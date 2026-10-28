@@ -165,6 +165,8 @@ export class App implements OnInit {
 
   trainStatus: 'idle' | 'running' | 'done' | 'error' = 'idle';
   trainMessage = '';
+  deployMessage = '';
+  deployOk: boolean | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(private http: HttpClient) {}
@@ -193,6 +195,22 @@ export class App implements OnInit {
       error: (err) => {
         this.trainStatus = 'error';
         this.trainMessage = err?.error?.detail || 'No se pudo iniciar el reentrenamiento.';
+      }
+    });
+  }
+
+  publishImage(): void {
+    this.onApiUrlChange();
+    this.deployOk = null;
+    this.deployMessage = 'Enviando a GitHub Actions...';
+    this.http.post<{ tag: string; actions_url: string }>(`${this.baseUrl}/deploy`, null, { params: { dataset: this.modelSize } }).subscribe({
+      next: (res) => {
+        this.deployOk = true;
+        this.deployMessage = `Workflow disparado. Se publicará la imagen ${res.tag}. Sigue el progreso en ${res.actions_url}`;
+      },
+      error: (err) => {
+        this.deployOk = false;
+        this.deployMessage = err?.error?.detail || 'No se pudo disparar el workflow.';
       }
     });
   }

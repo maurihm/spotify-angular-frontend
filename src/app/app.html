@@ -31,6 +31,11 @@
     <span class="muted" [class.error]="trainStatus === 'error'">{{ trainMessage }}</span>
   </section>
 
+  <section class="train">
+    <button type="button" (click)="publishImage()">Publicar imagen (GitHub Actions)</button>
+    <span class="muted" [class.error]="deployOk === false">{{ deployMessage }}</span>
+  </section>
+
   <section>
     <h2>Presets</h2>
     <div class="presets">
